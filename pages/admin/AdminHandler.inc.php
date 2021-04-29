@@ -44,6 +44,7 @@ class AdminHandler extends Handler
                 'expireSessions',
                 'clearTemplateCache',
                 'clearDataCache',
+  				'rebuildSearchIndex',
                 'downloadScheduledTaskLogFile',
                 'clearScheduledTaskLogFiles',
             ]
@@ -437,6 +438,20 @@ class AdminHandler extends Handler
         $request->redirect(null, 'admin');
     }
 
+    # Testing of search index rebuild from web
+	public function callbackBaseUrl($hookName, $params) {
+		$baseUrl =& $params[0];
+		$baseUrl = Config::getVar('general', 'base_url');
+		return true;
+	}
+	function rebuildSearchIndex() {
+		$switches = array();
+		$journal = null;
+		HookRegistry::register('Request::getBaseUrl', array($this, 'callbackBaseUrl'));
+		$articleSearchIndex = Application::getSubmissionSearchIndex();
+		$articleSearchIndex->rebuildIndex(true, $journal, $switches);
+	}
+    
     /**
      * Download scheduled task execution log file.
      */
